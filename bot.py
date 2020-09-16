@@ -428,7 +428,7 @@ sleep = int()
 
 
 target = inputc('Enter the Post ID (example: CFMFOeijE-v): ', colors.YELLOW)
-sleep = int(inputc('sleep (milliseconds, best: 500, no? = 0): ', colors.YELLOW))
+sleep = int(inputc('sleep (milliseconds, best: 15000, no? = 0): ', colors.YELLOW))
 
 choice = inputc('Multi accounts(M) or single(S)? or saved sessions(Pickle)(P) [M/S/P]: ', colors.YELLOW)
 
