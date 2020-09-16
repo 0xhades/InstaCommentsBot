@@ -522,13 +522,18 @@ if choice.lower() == 'y':
     wloop = int(inputc('Enter the number of loops for the whole comments (no = 1): ', colors.YELLOW))
 
 for i in accounts:
-    if loop:
-        for lap in range(wloop):
+    if i.loggedIn:
+
+        def run():
+            if loop:
+            for lap in range(wloop):
+                for comment in comments:
+                    for _lap in range(eloop):
+                        if accounts.kickmeout: return
+                        accounts.sendComment(target, comment)
+                        time.sleep(sleep / 1000)
+        else:
             for comment in comments:
-                for _lap in range(eloop):
-                    accounts.sendComment(target, comment)
-                    time.sleep(sleep / 1000)
-    else:
-        for comment in comments:
-            accounts.sendComment(target, comment)
-            time.sleep(sleep / 1000)
+                if accounts.kickmeout: return
+                accounts.sendComment(target, comment)
+                time.sleep(sleep / 1000)
