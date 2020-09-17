@@ -537,3 +537,5 @@ for i in accounts:
                     if accounts.kickmeout: return
                     accounts.sendComment(target, comment)
                     time.sleep(sleep / 1000)
+    
+    run()
