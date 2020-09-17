@@ -47,12 +47,13 @@ class colors:
     WHITEBG2  = '\33[107m'
 
 def escape(string):
-    finalString = string
-    bad_chars = ['\a', '\b', '\f']
-    for i in bad_chars:
-        finalString = finalString.replace(i, '')
+    return string
+#     finalString = string
+#     bad_chars = ['\a', '\b', '\f']
+#     for i in bad_chars:
+#         finalString = finalString.replace(i, '')
 
-    return re.sub(r'[^\w]', '', finalString)
+#     return re.sub(r'[^\w]', '', finalString)
     
 def printc(value, color='', nonewline=None, more=''):
 
