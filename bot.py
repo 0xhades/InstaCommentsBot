@@ -47,7 +47,7 @@ class colors:
     WHITEBG2  = '\33[107m'
 
 def escape(string):
-    return string.replace('/', '\\')
+    return string
     
 def printc(value, color='', nonewline=None, more=''):
 
