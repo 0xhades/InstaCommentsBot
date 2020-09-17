@@ -46,6 +46,18 @@ class colors:
     BEIGEBG2  = '\33[106m'
     WHITEBG2  = '\33[107m'
 
+def escape(string):
+    finalString = string
+    bad_chars = 'ghijklmnopqrstuvwxyz\\/_-'
+    for i in bad_chars:
+        finalString = finalString.replace(i, '')
+
+    bad_chars = ['\a', '\b', '\f']
+    for i in bad_chars:
+        finalString = finalString.replace(i, '')
+
+    return re.sub(r'[^\w]', '', finalString)
+    
 def printc(value, color='', nonewline=None, more=''):
 
     end = '\n'
@@ -439,16 +451,16 @@ choice = inputc('Multi accounts(M) or single(S)? or saved sessions(Pickle)(P) [M
 if choice.lower() == 'm':
     choice = inputc('Combo list(C) or (usernames+password)(T) [C/T]: ', colors.YELLOW)
     if choice.lower() == 'c':
-        combos = open(inputc('Enter the combo list: ', colors.BLUE) , 'r').read().splitlines()
+        combos = open(escape(inputc('Enter the combo list: ', colors.BLUE)) , 'r').read().splitlines()
         for combo in combos:
             usernames.append(combo.split(':')[0])
             passwords.append(combo.split(':')[1])
     else:
-        usernames = open(inputc('Enter the usernames list: ', colors.BLUE) , 'r').read().splitlines()
-        passwords = open(inputc('Enter the passwords list: ', colors.BLUE) , 'r').read().splitlines()
+        usernames = open(escape(inputc('Enter the usernames list: ', colors.BLUE)) , 'r').read().splitlines()
+        passwords = open(escape(inputc('Enter the passwords list: ', colors.BLUE)) , 'r').read().splitlines()
 
 elif choice.lower() == 'p':
-    with open(inputc('Enter the path to the sessions: ', colors.BLUE), 'rb') as f:
+    with open(escape(inputc('Enter the path to the sessions: ', colors.BLUE)), 'rb') as f:
         accounts = pickle.load(f)
     pickled = True
 
@@ -467,18 +479,18 @@ if not pickled:
 
     choice = inputc('Want to save the sessions (cookies)? [Y\\N]: ', colors.YELLOW)
     if choice.lower() == 'y':
-        with open(inputc('Enter the path to a file: ', colors.BLUE), 'wb') as f:
+        with open(escape(inputc('Enter the path to a file: ', colors.BLUE)), 'wb') as f:
             pickle.dump(accounts, f)
 
 unloggedIn = 0
 for i in accounts:
     if not i.loggedIn: unloggedIn += 1
 
-if unloggedIn == len(accounts): exit(1)
+if unloggedIn == len(accounts): exit(1); printc('Bad Accounts', colors.RED)
 
 choice = inputc('Want to use proxies? [Y\\N]: ', colors.YELLOW)
 if choice.lower() == 'y':
-    proxies = open(inputc('Enter the proxies list: ', colors.BLUE) , 'r').read().splitlines()
+    proxies = open(escape(inputc('Enter the proxies list: ', colors.BLUE)) , 'r').read().splitlines()
     for i in accounts:
         i.proxies = proxies
 
@@ -487,7 +499,7 @@ if choice.lower() == 'y':
     mention = True
     choice = inputc('Want to load the usernames here(T) or from an extend file(F) ? [T\F]: ', colors.YELLOW)
     if choice.lower() == 'f':
-        targets = open(inputc('Enter the path to the usernames file: ', colors.BLUE) , 'r').read().splitlines()
+        targets = open(escape(inputc('Enter the path to the usernames file: ', colors.BLUE)) , 'r').read().splitlines()
         mentions_per_comment = int(inputc('how many mentions per comment?: ', colors.YELLOW))
         
         users = len(targets)
@@ -521,7 +533,7 @@ if choice.lower() == 'y':
 else:
     choice = inputc('Want to load the comments here(T) or from an extend file(F) ? [T\F]: ', colors.YELLOW)
     if choice.lower() == 'f':
-        comments = open(inputc('Enter the path to the comments file: ', colors.BLUE) , 'r').read().splitlines()
+        comments = open(escape(inputc('Enter the path to the comments file: ', colors.BLUE)) , 'r').read().splitlines()
     else:
         comments.append(inputc('Enter text:\n', colors.YELLOW))
 
