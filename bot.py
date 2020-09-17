@@ -469,7 +469,7 @@ if not pickled:
 
 unloggedIn = 0
 for i in accounts:
-    if i.unloggedIn: unloggedIn += 1
+    if i.loggedIn: unloggedIn += 1
 
 if unloggedIn == len(accounts): exit(1)
 
