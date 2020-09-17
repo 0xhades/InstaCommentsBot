@@ -428,7 +428,7 @@ sleep = int()
 
 
 target = inputc('Enter the Post ID (example: CFMFOeijE-v): ', colors.YELLOW)
-sleep = int(inputc('sleep (milliseconds, best: 15000, no? = 0): ', colors.YELLOW))
+sleep = int(inputc('sleep (milliseconds, best: 500, no? = 0): ', colors.YELLOW))
 
 choice = inputc('Multi accounts(M) or single(S)? or saved sessions(Pickle)(P) [M/S/P]: ', colors.YELLOW)
 
@@ -526,14 +526,14 @@ for i in accounts:
 
         def run():
             if loop:
-            for lap in range(wloop):
+                for lap in range(wloop):
+                    for comment in comments:
+                        for _lap in range(eloop):
+                            if accounts.kickmeout: return
+                            accounts.sendComment(target, comment)
+                            time.sleep(sleep / 1000)
+            else:
                 for comment in comments:
-                    for _lap in range(eloop):
-                        if accounts.kickmeout: return
-                        accounts.sendComment(target, comment)
-                        time.sleep(sleep / 1000)
-        else:
-            for comment in comments:
-                if accounts.kickmeout: return
-                accounts.sendComment(target, comment)
-                time.sleep(sleep / 1000)
+                    if accounts.kickmeout: return
+                    accounts.sendComment(target, comment)
+                    time.sleep(sleep / 1000)
