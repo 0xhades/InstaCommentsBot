@@ -48,10 +48,6 @@ class colors:
 
 def escape(string):
     finalString = string
-    bad_chars = 'ghijklmnopqrstuvwxyz\\/_-'
-    for i in bad_chars:
-        finalString = finalString.replace(i, '')
-
     bad_chars = ['\a', '\b', '\f']
     for i in bad_chars:
         finalString = finalString.replace(i, '')
