@@ -47,13 +47,7 @@ class colors:
     WHITEBG2  = '\33[107m'
 
 def escape(string):
-    return string
-#     finalString = string
-#     bad_chars = ['\a', '\b', '\f']
-#     for i in bad_chars:
-#         finalString = finalString.replace(i, '')
-
-#     return re.sub(r'[^\w]', '', finalString)
+    return string.replace('/', '\\')
     
 def printc(value, color='', nonewline=None, more=''):
 
