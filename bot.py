@@ -467,6 +467,12 @@ if not pickled:
         with open(inputc('Enter the path to a file: ', colors.BLUE), 'wb') as f:
             pickle.dump(accounts, f)
 
+unloggedIn = 0
+for i in accounts:
+    if i.unloggedIn: unloggedIn += 1
+
+if unloggedIn == len(accounts): exit(1)
+
 choice = inputc('Want to use proxies? [Y\\N]: ', colors.YELLOW)
 if choice.lower() == 'y':
     proxies = open(inputc('Enter the proxies list: ', colors.BLUE) , 'r').read().splitlines()
