@@ -1,4 +1,5 @@
 import requests, hashlib, string, random, uuid, time, calendar, re, json, urllib.parse, base64, pickle
+from sys import platform 
 
 class colors:
 
@@ -47,7 +48,9 @@ class colors:
     WHITEBG2  = '\33[107m'
 
 def escape(string):
-    return string
+    if platform == "win32" or platform == "win64" or platform == "windows":
+        return string.replace('/', '\\')
+    else: return string
     
 def printc(value, color='', nonewline=None, more=''):
 
