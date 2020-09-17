@@ -384,18 +384,20 @@ class account:
                     else: self.proxiesIndex += 1
             else:
                 if response.json()['status'] == 'ok':
-                    printc(f'Sent Successfully by @{self.username}: ', color=colors.GREEN)
+                    printc(f'Sent Successfully by @{self.username}', color=colors.GREEN)
                     self.proxyInNeed = False
                 elif 'Commenting is Off' in response.text:
                     printc(f'You can\'t comment in the target post, cause commenting is Off', color=colors.RED2)
+                    exit(1)
                 elif 'feedback_required' in response.text or 'repute/report_problem/instagram_comment/' in response.text:
                     printc(f'@{self.username} Got comment\'s block', color=colors.RED2)
                     self.kickmeout = True
                 else: self.proxyInNeed = True
         else:
             response = requests.post(url, headers=self.headers, cookies=self.cookies, data=payload, verify=True)
+            print(response.text)
             if response.json()['status'] == 'ok':
-                printc(f'Sent Successfully by @{self.username}', color=colors.GREEN)
+                printc(f'Sent Successfully by @{self.username}: ', color=colors.GREEN)
             elif 'feedback_required' in response.text or 'repute/report_problem/instagram_comment/' in response.text:
                 printc(f'@{self.username} Got comment\'s block', color=colors.RED2)
                 self.kickmeout = True
