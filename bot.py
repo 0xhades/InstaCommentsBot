@@ -401,7 +401,6 @@ class account:
                 else: self.proxyInNeed = True
         else:
             response = requests.post(url, headers=self.headers, cookies=self.cookies, data=payload, verify=True)
-            print(response.text)
             if response.json()['status'] == 'ok':
                 printc(f'Sent Successfully by @{self.username}: ', color=colors.GREEN)
             elif 'feedback_required' in response.text or 'repute/report_problem/instagram_comment/' in response.text:
