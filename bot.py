@@ -1,5 +1,4 @@
 import requests, hashlib, string, random, uuid, time, calendar, re, json, urllib.parse, base64, pickle
-from sys import platform 
 
 class colors:
 
@@ -47,11 +46,6 @@ class colors:
     BEIGEBG2  = '\33[106m'
     WHITEBG2  = '\33[107m'
 
-def escape(string):
-    if platform == "win32" or platform == "win64" or platform == "windows":
-        return string.replace('/', '\\')
-    else: return string
-    
 def printc(value, color='', nonewline=None, more=''):
 
     end = '\n'
@@ -106,6 +100,7 @@ class account:
         self.proxiesIndex = 0
         self.proxyInNeed = bool()
         self.proxy = str()
+        self.maxID = str()
         self.kickmeout = bool()
 
         TimeStamp = calendar.timegm(time.gmtime())
@@ -402,11 +397,36 @@ class account:
         else:
             response = requests.post(url, headers=self.headers, cookies=self.cookies, data=payload, verify=True)
             if response.json()['status'] == 'ok':
-                printc(f'Sent Successfully by @{self.username}: ', color=colors.GREEN)
+                printc(f'Sent Successfully by @{self.username}', color=colors.GREEN)
+            elif 'Commenting is Off' in response.text:
+                printc(f'You can\'t comment in the target post, cause commenting is Off', color=colors.RED2)
+                exit(1)
             elif 'feedback_required' in response.text or 'repute/report_problem/instagram_comment/' in response.text:
                 printc(f'@{self.username} Got comment\'s block', color=colors.RED2)
                 self.kickmeout = True
             else: self.kickmeout = True
+    
+    def getFollowers(self, userID) -> list:
+        url = f'https://i.instagram.com/api/v1/friendships/{userID}/followers/?search_surface=follow_list_page&order=default&query=&enable_groups=true&rank_token=missing'
+        if self.maxID:
+            url += f'&max_id={self.maxID}'
+
+        try:
+            response = requests.get(url, headers=self.headers, cookies=self.cookies, verify=True, timeout=10)
+            res = response.json()
+        except Exception as ex:
+            return None
+        
+        users = []
+        
+        for i in res['users']:
+            users.append(i['username'])
+
+        if res['next_max_id']:
+            self.maxID = res['next_max_id']
+        else: self.maxID = str()
+
+        return users
 
 ClearConsole()
 printc('''
@@ -434,30 +454,64 @@ loop = bool()
 eloop = 0
 wloop = 0
 sleep = int()
+selfin = bool()
+targets = []
 
+choice = inputc('Want to grab followers list to mention them? [Y\\N]: ', colors.YELLOW)
+if choice.lower() == 'y':
+    list_limit = int(inputc('Want to grab all the followers? (No=0, Yes set a limit=size of list): ', colors.YELLOW))
+    username = inputc('Username: ', colors.YELLOW)
+    password = inputc('Password: ', colors.YELLOW)
+    sleep = int(inputc('sleep (milliseconds, best: 1000, no? = 0): ', colors.YELLOW))
+    _account = account(username, password)
+    _target = inputc('Get followers from (enter a username): ', colors.YELLOW)
+    ID = _account.getID(_target)
 
-target = inputc('Enter the Post ID (example: CFMFOeijE-v): ', colors.YELLOW)
-sleep = int(inputc('sleep (milliseconds, best: 500, no? = 0): ', colors.YELLOW))
+    count = 0
+    while True:
+        users = _account.getFollowers(ID)
+        if not users: break
+        for user in users:
+            targets.append(user)
+        count += len(users)
+        DeleteLine()
+        printc(f'Grabbed: {count}', color=colors.BLUE2, nonewline=True)
+        if list_limit != 0:
+            if count >= list_limit: break
+        if not _account.maxID: break
+        time.sleep(sleep / 1000)
+    selfin = True
+    if not len(users) > 0:
+        inputc('I can\'t get followrs for some reason, add them manually', colors.RED)
+        selfin = False
+    print()
+
+target = inputc('Enter the Post URL from web: ', colors.YELLOW).split('/')[4]
+sleep = int(inputc('commenting sleep (milliseconds, best: 12000, no? = 0): ', colors.YELLOW))
 
 choice = inputc('Multi accounts(M) or single(S)? or saved sessions(Pickle)(P) [M/S/P]: ', colors.YELLOW)
 
 if choice.lower() == 'm':
+    logsleep = int(inputc('login sleep (milliseconds, best: 500, no? = 0): ', colors.YELLOW))
     choice = inputc('Combo list(C) or (usernames+password)(T) [C/T]: ', colors.YELLOW)
     if choice.lower() == 'c':
-        combos = open(escape(inputc('Enter the combo list: ', colors.BLUE)) , 'r').read().splitlines()
+        try:
+            combos = open(inputc('Enter the combo list: ', colors.BLUE) , 'r').read().splitlines()
+        except Exception as ex: print(ex)
         for combo in combos:
             usernames.append(combo.split(':')[0])
             passwords.append(combo.split(':')[1])
     else:
-        usernames = open(escape(inputc('Enter the usernames list: ', colors.BLUE)) , 'r').read().splitlines()
-        passwords = open(escape(inputc('Enter the passwords list: ', colors.BLUE)) , 'r').read().splitlines()
+        usernames = open(inputc('Enter the usernames list: ', colors.BLUE) , 'r').read().splitlines()
+        passwords = open(inputc('Enter the passwords list: ', colors.BLUE) , 'r').read().splitlines()
 
 elif choice.lower() == 'p':
-    with open(escape(inputc('Enter the path to the sessions: ', colors.BLUE)), 'rb') as f:
+    with open(inputc('Enter the path to the sessions: ', colors.BLUE), 'rb') as f:
         accounts = pickle.load(f)
     pickled = True
 
 else:
+    logsleep = int(inputc('login sleep (milliseconds, best: 500, no? = 0): ', colors.YELLOW))
     usernames.append(inputc('Username: ', colors.YELLOW))
     passwords.append(inputc('Password: ', colors.YELLOW))
 
@@ -466,91 +520,130 @@ if len(usernames) != len(passwords): printc(f'Usernames list and passwords are n
 if not pickled:
     for i in range(len(usernames)):
         acc = account(usernames[i], passwords[i])
-        time.sleep(sleep / 1000)
+        time.sleep(logsleep / 1000)
         if acc.loggedIn:
             accounts.append(acc)
 
     choice = inputc('Want to save the sessions (cookies)? [Y\\N]: ', colors.YELLOW)
     if choice.lower() == 'y':
-        with open(escape(inputc('Enter the path to a file: ', colors.BLUE)), 'wb') as f:
+        with open(inputc('Enter the path to a file: ', colors.BLUE), 'wb') as f:
             pickle.dump(accounts, f)
 
 unloggedIn = 0
 for i in accounts:
     if not i.loggedIn: unloggedIn += 1
 
-if unloggedIn == len(accounts): exit(1); printc('Bad Accounts', colors.RED)
+if unloggedIn == len(accounts): exit(1)
 
 choice = inputc('Want to use proxies? [Y\\N]: ', colors.YELLOW)
 if choice.lower() == 'y':
-    proxies = open(escape(inputc('Enter the proxies list: ', colors.BLUE)) , 'r').read().splitlines()
+    proxies = open(inputc('Enter the proxies list: ', colors.BLUE) , 'r').read().splitlines()
     for i in accounts:
         i.proxies = proxies
 
-choice = inputc('Want to use mentions Bot? [Y\\N]: ', colors.YELLOW)
-if choice.lower() == 'y':
-    mention = True
-    choice = inputc('Want to load the usernames here(T) or from an extend file(F) ? [T\F]: ', colors.YELLOW)
-    if choice.lower() == 'f':
-        targets = open(escape(inputc('Enter the path to the usernames file: ', colors.BLUE)) , 'r').read().splitlines()
-        mentions_per_comment = int(inputc('how many mentions per comment?: ', colors.YELLOW))
-        
-        users = len(targets)
-        comment_limit = mentions_per_comment
-        comments_count = 0
-        if users > comment_limit:
-            temp = ''
-            for i in range(users):
-                if i != 0 and i % comment_limit == 0:
-                    comments_count += 1
-                    comments.append(temp)
-                    temp = ''
-                    if (users - (comments_count * comment_limit)) < comment_limit: break 
-                temp += f'@{targets[i]} '
-            left = (users - (comments_count * comment_limit))
-            temp = ''
-            for user in targets[-left:]:
-                temp += f'@{targets[i]} '
-            comments.append(temp)
-            comments_count += 1
+if not selfin:
+    choice = inputc('Want to use mentions Bot? [Y\\N]: ', colors.YELLOW)
+    if choice.lower() == 'y':
+        mention = True
+        choice = inputc('Want to load the usernames here(T) or from an extend file(F) ? [T\F]: ', colors.YELLOW)
+        if choice.lower() == 'f':
+            targets = open(inputc('Enter the path to the usernames file: ', colors.BLUE) , 'r').read().splitlines()
+            mentions_per_comment = int(inputc('how many mentions per comment?: ', colors.YELLOW))
+            
+            users = len(targets)
+            comment_limit = mentions_per_comment
+            comments_count = 0
+            if users > comment_limit:
+                temp = ''
+                for i in range(users):
+                    if i != 0 and i % comment_limit == 0:
+                        comments_count += 1
+                        comments.append(temp)
+                        temp = ''
+                        if (users - (comments_count * comment_limit)) < comment_limit: break 
+                    temp += f'@{targets[i]} '
+                left = (users - (comments_count * comment_limit))
+                temp = ''
+                for user in targets[-left:]:
+                    temp += f'@{targets[i]} '
+                comments.append(temp)
+                comments_count += 1
+
+            else:
+
+                for user in targets:
+                    temp += f' @{targets[i]} '
+                comments.append(temp)
+                comments_count += 1
 
         else:
-
-            for user in targets:
-                temp += f' @{targets[i]} '
-            comments.append(temp)
-            comments_count += 1
-
+            comments.append(inputc('Enter usernames, please use @ before every username:\n', colors.YELLOW))
     else:
-        comments.append(inputc('Enter usernames, please use @ before every username:\n', colors.YELLOW))
+        choice = inputc('Want to load the comments here(T) or from an extend file(F) ? [T\F]: ', colors.YELLOW)
+        if choice.lower() == 'f':
+            comments = open(inputc('Enter the path to the comments file: ', colors.BLUE) , 'r').read().splitlines()
+        else:
+            comments.append(inputc('Enter text:\n', colors.YELLOW))
+
 else:
-    choice = inputc('Want to load the comments here(T) or from an extend file(F) ? [T\F]: ', colors.YELLOW)
-    if choice.lower() == 'f':
-        comments = open(escape(inputc('Enter the path to the comments file: ', colors.BLUE)) , 'r').read().splitlines()
+
+    mentions_per_comment = int(inputc('how many mentions per comment?: ', colors.YELLOW))
+            
+    users = len(targets)
+    comment_limit = mentions_per_comment
+    comments_count = 0
+    if users > comment_limit:
+        temp = ''
+        for i in range(users):
+            if i != 0 and i % comment_limit == 0:
+                comments_count += 1
+                comments.append(temp)
+                temp = ''
+                if (users - (comments_count * comment_limit)) < comment_limit: break 
+            temp += f'@{targets[i]} '
+        left = (users - (comments_count * comment_limit))
+        temp = ''
+        for user in targets[-left:]:
+            temp += f'@{targets[i]} '
+        comments.append(temp)
+        comments_count += 1
+
     else:
-        comments.append(inputc('Enter text:\n', colors.YELLOW))
+
+        for user in targets:
+            temp += f' @{targets[i]} '
+        comments.append(temp)
+        comments_count += 1
 
 choice = inputc('Do want to repeat the comment (loop)? (Y/N): ', colors.YELLOW)
 if choice.lower() == 'y':
     loop = True
     eloop = int(inputc('Enter the number of loops for each comment (no = 1): ', colors.YELLOW))
     wloop = int(inputc('Enter the number of loops for the whole comments (no = 1): ', colors.YELLOW))
-
-for i in accounts:
-    if i.loggedIn:
-
-        def run(i):
-            if loop:
-                for lap in range(wloop):
-                    for comment in comments:
-                        for _lap in range(eloop):
-                            if i.kickmeout: return
-                            i.sendComment(target, comment)
-                            time.sleep(sleep / 1000)
-            else:
-                for comment in comments:
-                    if i.kickmeout: return
-                    i.sendComment(target, comment)
-                    time.sleep(sleep / 1000)
     
-    run(i)
+blocked = 0
+for comment in comments:
+
+    def send(comment) -> bool:
+        global blocked
+        if loop:
+            for lap in range(wloop):
+                for _lap in range(eloop):
+                    acc = random.choice(accounts)
+                    acc.sendComment(target, comment)
+                    if acc.kickmeout: blocked += 1; return False
+                    time.sleep(sleep / 1000)
+                    return True
+        else:
+
+            acc = random.choice(accounts)
+            acc.sendComment(target, comment)
+            if acc.kickmeout: blocked += 1; return False
+            time.sleep(sleep / 1000)
+            return True
+
+    while True:
+        if send(comment): break
+        if blocked == len(accounts): 
+            printc('All accounts got blocked!', colors.RED)
+            exit(1)
